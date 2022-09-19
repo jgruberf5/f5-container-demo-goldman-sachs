@@ -69,6 +69,9 @@ RUN apt-get update && \
     xdg-utils \
     postgresql-client \
     python3-sqlalchemy \
+    gcc \
+    python3-dev \
+    libpq-dev \
     python3-psycopg2 \
     python3-pymongo \
     mongodb-clients \
