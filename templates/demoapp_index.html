@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Goldman Sachs F5 Distributed Cloud Demonstration</title>
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" href="static/assets/favicon.ico" />
+    <!-- Bootstrap Icons-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <!-- Google fonts-->
+    <link href="https://fonts.googleapis.com/css?family=Merriweather+Sans:400,700" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Merriweather:400,300,300italic,400italic,700,700italic"
+        rel="stylesheet" type="text/css" />
+    <!-- SimpleLightbox plugin CSS-->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/SimpleLightbox/2.1.0/simpleLightbox.min.css" rel="stylesheet" />
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="static/css/styles.css" rel="stylesheet" />
+    <!-- Load template variables as globals -->
+    <script>
+        demoLocation = '{{ location }}'
+    </script>
+</head>
+
+<body id="page-top">
+    <!-- Navigation-->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top py-3" id="mainNav">
+        <div class="container px-4 px-lg-5">
+            <a class="navbar-brand" href="#page-top">Home</a>
+            <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ms-auto my-2 my-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="#demo1" id="demo1-menu">Demo #1</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#demo2" id="demo2-menu">Demo #2</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#demo3" id="demo3-menu">Demo #3</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#demo4" id="demo4-menu">Demo #4</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/diag">Diagnostic Demo</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- Masthead-->
+    <header class="masthead">
+        <div class="container h-100 vh-100">
+            <div class="row gx-4 gx-lg-5 h-100 align-top justify-content-center text-center mt-5">
+                <div class="col-lg-8">
+                    <p class="h1 text-white mb-5">{{ location }}</p>
+                    <p>
+                    <a href="https://www.ibm.com/cloud/satellite" title="IBM Cloud Satellite" class="text-white-75 nav-link" target="_blank">
+                            <img src='/static/assets/img/ibm_satellite.svg' height="100px" width="100px">
+                            <span class="h2">IBM Satellite</span>
+                    </a>
+                    </p>
+                    <p>
+                        <span class="text-white-75 h1">+</span>
+                    </p>
+                    <p>
+                    <a href="https://www.f5.com/cloud/products/platform-overview" title="F5 Distributed Cloud" class="text-white-75 nav-link" target="_blank">
+                            <img src='/static/assets/img/f5-logo-rgb.svg' height="80px" width="80px">
+                            <span class="h2 ml-3">Distributed Cloud</span>
+                    </a>
+                    </p>
+                    <p class="mt-5 mb-5">
+                        <a class="btn btn-primary mb-5" href="#demo1">Let's Get Started</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Demo 1-->
+    <section class="page-section bg-primary mt-5 mb-5 pt-5 pb-5" id="demo1">
+        <div class="container h-100 vh-100" style="vertical-align: top;">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-top">
+                    <h2 class="text-white mt-0 text-center">Demo 1</h2>
+                    <h3 class="text-white text-center">Satellite Location to Location OpenShift Service Access</h3>
+                    <hr class="divider divider-light" />
+                    <div id="demo1-description">
+                    <p class="text-white-75">
+                        F5 Distributed Cloud provides secured connectivity for
+                        services running within OpenShift clustered deployed in your
+                        IBM Satellite Locations. It does this without the need to
+                        expose your container services outside the cluster. This removes
+                        the need to secure service access between clusters with infrastructure
+                        firewalls and application security devices.
+                    </p>
+                    <div class="text-center">
+                        <img src='/static/assets/img/service_to_service.svg' height="200px" width="200px">
+                    </div>
+                    <p class="text-white-75">
+                        F5 Distributed Cloud includes SaaS managed network and application
+                        security policies including full WAF and advanced web BOT protection.
+                        These policies can be applied wherever locations you choose to publish
+                        your services.
+                    </p>
+                    <div class="text-center">
+                        <button class="btn btn-light btn-l" id="start-demo1">Start Demo</button>
+                    </div>
+                    </div>
+                    <div id="demo1-running" style="display: none;">
+                        <p class="text-white">
+                            Let's attempt to make a service call from within our
+                            <span class="fw-bolder fst-italic font-monospaces">{{ location }}</span> cluster to:
+                        </p>
+                        <p class="text-center text-white fw-bolder fst-italic font-monospace ml-5">http://remoteservice.default/demoservice</p>
+                        <p class="text-white">
+                            This service won't exist in our cluster until it is published in this
+                            location's distributed cloud site by the service name <span class="fw-bolder fst-italic font-monospace">'remoteservice'</span>.
+                        </p>
+                        <div class="text-center">
+                            <img src='/static/assets/img/service_disconnected_to_service.svg' height="200px" width="200px" id="demo1-diagram">
+                        </div>
+                        <div class="text-center">
+                            <botton class="btn btn-light justify-content-center" id="run-demo1">
+                                <i class="spinner-border spinner-border-sm" role="status" id="spinner-demo1" style="display: none;"></i>
+                                <span>Call Remote Service</span>
+                            </botton>
+                        </div>
+                        <div class="text-center mt-5 text-success bg-light rounded border border-success" id="demo1-output" style="display: none;">
+
+                        </div>
+                        <div class="text-center mt-5 text-danger bg-light rounded border border-danger" id="demo1-error" style="display: none;">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Demo2 -->
+    <section class="page-section mt-5 mb-5 pt-5 pb-5" id="demo2">
+        <div class="container h-100 vh-100" style="vertical-align: top;">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-top">
+                    <h2 class="mt-0 text-center">Demo 2</h2>
+                    <h3 class="text-center">Satellite Location OpenShift Service</br>to Satellite Location ICD (IBM cloud databases)</h3>
+                    <hr class="divider" />
+                    <div id="demo2-description">
+                        <p class="text-75">
+                            F5 Distributed Cloud provides secured connectivity for
+                            services running within Location OpenShift clusters to
+                            other services created in IBM Satellite Locations.
+                        </p>
+                        <div class="text-center">
+                            <img src='/static/assets/img/service_to_db.svg' height="200px" width="200px">
+                        </div>
+                        <p class="text-75">
+                            F5 Distributed Cloud SaaS decouples the responsibilies
+                            of a database administrator deploying and auditing with
+                            IBM Cloud Databases and providing access the database
+                            from other Locations.
+                        </p>
+                        <div class="text-center">
+                            <button class="btn btn-primary btn-l" id="start-demo2">Start Demo</button>
+                        </div>
+                    </div>
+                    <div id="demo2-running" style="display: none;">
+                        <p>
+                            Let's attempt to connect to a Satellite location deployed database from within our
+                            <span class="fw-bolder fst-italic font-monospaces">{{ location }}</span> cluster to:
+                        </p>
+                        <p class="text-center fw-bolder fst-italic font-monospace ml-5">postgress://remotedb.default:5432/appdb</p>
+                        <p>
+                            The service for our database won't exist in our cluster until it is published in this
+                            location's distributed cloud site by the service name <span class="fw-bolder fst-italic font-monospaces">'remotedb'</span>.
+                        </p>
+                        <div class="text-center">
+                            <img src='/static/assets/img/service_disconnected_to_db.svg' height="200px" width="200px" id="demo2-diagram">
+                        </div>
+                        <div class="text-center">
+                            <botton class="btn btn-primary justify-content-center" id="run-demo2">
+                                <i class="spinner-border spinner-border-sm" role="status" id="spinner-demo2" style="display: none;"></i>
+                                <span>Connet to Remote Database</span>
+                            </botton>
+                        </div>
+                        <div class="text-center mt-5 text-success bg-light rounded border border-success" id="demo2-output" style="display: none;">
+
+                        </div>
+                        <div class="text-center mt-5 text-danger bg-light rounded border border-danger" id="demo2-error" style="display: none;">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Demo3 -->
+    <section class="page-section bg-primary mt-5 mb-5 pt-5 pb-5" id="demo3">
+        <div class="container h-100 vh-100" style="vertical-align: top;">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-top">
+                    <h2 class="text-white mt-0 text-center">Demo 3</h2>
+                    <h3 class="text-white text-center">Satellite Location to Poly-Cloud Hosted Services</h3>
+                    <hr class="divider divider-light" />
+                    <div id="demo3-description">
+                        <p class="text-white-75">
+                            F5 Distributed Cloud provides secured connectivity for
+                            services running in any VPC or private datacenter hosting
+                            a distributed cloud site cluster.
+                        </p>
+                        <div class="text-center">
+                            <img src='/static/assets/img/service_to_clouds.svg' height="200px">
+                        </div>
+                        <p class="text-white-75 mt-3">
+                            Distributed cloud sites can be deloyed within
+                            IBM Satellite OpenShift clusters, IBM cloud VPC,
+                            AWS, Azure, GCP, VMware, and KVM based IaaS platforms.
+                        </p>
+                        <p class="text-white-75">
+                            Distributed cloud sites can be deployed as VMs, on
+                            bare metal servers, and supported F5 hardware gateways. They extend
+                            your reach into branch offices, manufacturing floors,
+                            or managed service facilities.
+                        </p>
+                        <div class="text-center">
+                            <button class="btn btn-light btn-l" id="start-demo3">Start Demo</button>
+                        </div>
+                    </div>
+                    <div id="demo3-running" style="display: none;">
+                        <p class="text-white">
+                            Let's attempt to make a service call from within our
+                            <span class="fw-bolder fst-italic font-monospaces">{{ location }}</span> cluster to:
+                        </p>
+                        <p class="text-center text-white fw-bolder fst-italic font-monospace ml-5">http://azureservice.default/demoservice</p>
+                        <p class="text-white">
+                            This service won't exist in our cluster until it is published in this
+                            location's distributed cloud site by the service name <span class="fw-bolder fst-italic font-monospaces">azureservice</span>.
+                            The actual service is securely routed through a Azure virtual host based distributed
+                            cloud site cluster.
+                        </p>
+                        <div class="text-center">
+                            <img src='/static/assets/img/service_disconnected_to_azure_cloud.svg' height="200px" width="200px" id="demo3-diagram">
+                        </div>
+                        <div class="text-center">
+                            <botton class="btn btn-light justify-content-center" id="run-demo3">
+                                <i class="spinner-border spinner-border-sm" role="status" id="spinner-demo3" style="display: none;"></i>
+                                <span>Call Remote Azure Service</span>
+                            </botton>
+                        </div>
+                        <div class="text-center mt-5 text-success bg-light rounded border border-success" id="demo3-output" style="display: none;">
+
+                        </div>
+                        <div class="text-center mt-5 text-danger bg-light rounded border border-danger" id="demo3-error" style="display: none;">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Demo4 -->
+    <section class="page-section mt-5 mb-5 pt-5 pb-5" id="demo4">
+        <div class="container h-100 vh-100" style="vertical-align: top;">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-top">
+                    <h2 class="mt-0 text-center">Demo 4</h2>
+                    <h3 class="text-center">Internet to Satellite Locations or Distributed Sites</h3>
+                    <hr class="divider" />
+                    <div id="demo4-description">
+                        <p class="text-75">
+                            F5 Distributed Cloud provides a global any cast enabled
+                            backbone which can host services at the Internet edge
+                            with delegated DNS domains.
+                        </p>
+                        <p class="test-75">
+                            Every distributed cloud service is instrumented to provide
+                            application analytics and visibility through the SaaS console.
+                        </p>
+                        <div class="text-center">
+                            <img src='/static/assets/img/internet_to_services.svg' height="200px">
+                        </div>
+                        <p class="text-75 mt-3">
+                            The distributed cloud Internet edges include the ability
+                            to deploy network DDoS mitigations and HTTP application
+                            level protections like WAF, advance BOT protections, and
+                            ML based policy alerting.
+                        </p>
+                        <div class="text-center">
+                            <button class="btn btn-primary btn-l" id="start-demo4">Start Demo</button>
+                        </div>
+                    </div>
+                    <div id="demo4-running" style="display: none;">
+                        <p class="text-75">
+                            Lets make a request from your browser to a F5XC service published globally
+                            and see which F5XC regional edge you are closest to.
+                        </p>
+                        <div class="text-center">
+                            <img src='/static/assets/img/you_to_services.svg' height="200px">
+                        </div>
+                        <p>
+                        <div class="text-center">
+                            <botton class="btn btn-primary justify-content-center" id="run-demo4">
+                                <i class="spinner-border spinner-border-sm" role="status" id="spinner-demo4" style="display: none;"></i>
+                                <span>Where Am I?</span>
+                            </botton>
+                        </div>
+                        </p>
+                        <p>
+                        <div class="text-center">
+                            <iframe src="" width="100%" id="globalsite-display-frame"></iframe>
+                        </div>
+                        </p>
+                        <div class="text-center mt-5 text-success bg-light rounded border border-success" id="demo4-output" style="display: none;">
+
+                        </div>
+                        <div class="text-center mt-5 text-danger bg-light rounded border border-danger" id="demo4-error" style="display: none;">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Footer-->
+    <footer class="bg-light py-5">
+        <div class="container px-4 px-lg-5">
+            <div class="small text-center text-muted">Copyright &copy; 2021 - F5 Networks</div>
+        </div>
+    </footer>
+    <!-- Bootstrap core JS-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SimpleLightbox plugin JS-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/SimpleLightbox/2.1.0/simpleLightbox.min.js"></script>
+    <!-- JQuery min JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- Core theme JS-->
+    <script src="static/js/scripts.js"></script>
+</body>
+
+</html>

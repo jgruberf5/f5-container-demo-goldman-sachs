@@ -1,0 +1,102 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demo-goldman-sachs-portal
+  labels:
+    name: demo-goldman-sachs-portal
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: diag-container
+  namespace: demo-goldman-sachs-portal
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cluster-role-binding-clusterrolebinding-simple
+subjects:
+  - kind: ServiceAccount
+    name: diag-container
+    namespace: demo-goldman-sachs-portal
+roleRef:
+  kind: ClusterRole
+  name: cluster-role-binding-diag-container
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cluster-role-binding-diag-container
+rules:
+- apiGroups: [""]
+  resources: ["nodes","pods","services","namespaces","deployments","jobs","statefulsets","persistentvolumeclaims"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: diag-container-config
+  namespace: demo-goldman-sachs-portal
+data:
+  allowed_commands: |
+    ["^ping", "^cat /etc/hosts", "^cat /etc/resolv.conf", "^env$", "^ip route$", "^ip addr$", "^ip link$", "^ip neigh", "^netstat", "^dig", "^nc", "^ab", "^siege", "^tcping", "^traceroute", "^tcptraceroute", "^curl", "^whois", "^kubectl", "^sockperf", "^iperf", "^iperf3"]
+  http_listen_address: "0.0.0.0"
+  http_listen_port: "8080"
+  ws_listen_address: "0.0.0.0"
+  ws_listen_port: "8080"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: diag-container-app
+  namespace: demo-goldman-sachs-portal
+spec:
+  selector:
+    matchLabels:
+      app: diag-container-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: diag-container-app
+    spec:
+      serviceAccountName: diag-container
+      volumes:
+      - name: diag-container-volume
+        configMap:
+          name: diag-container-config
+      containers:
+      - name: diag-container
+        image: jgruberf5/f5-container-demo-goldman-sachs:latest
+        # if you want to be able to inject /etc/hosts entries
+        #securityContext:
+        #  allowPrivilegeEscalation: false
+        #  runAsUser: 0
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        volumeMounts:
+        - name: diag-container-volume
+          mountPath: /etc/container-demo-runner
+        env:
+        - name: BANNER
+          value: F5 Distibuted Cloud Demo
+        - name: BANNER_COLOR
+          value: 000000
+        - name: BANNER_TEXT_COLOR
+          value: ffffff
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: demo-goldman-sachs-portal
+spec:
+  type: ClusterIP
+  selector:
+    app: diag-container-app
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080

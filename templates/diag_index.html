@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Demo Command Runner</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=us-ascii" />
+    <meta http-equiv="Content-Script-Type" content="text/javascript" />
+    <meta name="robots" content="noindex">
+    <meta name="viewport" content="width=device-width, initial-scale=0.65">
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta name="description" content="Diagnostic Container - Command Runner">
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+        integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/css/bootstrap-select.css"
+        crossorigin="anonymous">
+    <!-- scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/socket.io@4.1.3/client-dist/socket.io.min.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous"></script>
+    <style>
+        input {
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="navbar navbar-expand-md navbar-dark bg-dark">
+            <div class="navbar-collapse collapse w-100 order-1 order-md-0 dual-collapse2">
+                <div class="navbar-nav mr-auto">
+                    <a href="/" class="navbar-brand d-flex align-items-center">
+                        <img src='/static/images/f5-logo-rgb.svg' height='32' width='32' style='margin-right: 20px;'
+                            alt='logo'>
+                        <strong>In Container Diagnostic Services</strong>
+                    </a>
+                </div>
+            </div>
+            <div class="navbar-text mr-auto text-nowrap font-weight-bold text-danger" id='hostname' name='hostname'>
+                {{ hostname }}
+            </div>
+            <div class="navbar-text mr-sm-0 m-2">
+                <span role='button' data-toggle="modal" data-target='#settingsModal' name='settings'>
+                    <img src='/static/images/gear.svg' height='16' width='16' alt='settings'>
+                </span>
+            </div>
+        </div>
+        <div class="progress">
+            <div class="progress-bar bg-danger" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                aria-valuemax="100" id="progress" style="width:0%;"></div>
+        </div>
+        <div class="alert px-5 text-uppercase font-weight-bold invisible" id='banner'
+            style="background-color:{{ banner_background_color }}; color:{{ banner_text_color }};">
+        </div>
+    </header>
+    <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-slideout modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Command Server</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class='form-group row m-1' id='settingsgroup'>
+                        <label class='text-secondary m-2'>Protocol:</label>
+                        <div class='col-sm-12'>
+                            <input class='form-control m-2' type='text' id='wsprotocol' />
+                        </div>
+                        <label class='text-secondary m-2'>Host:</label>
+                        <div class='col-sm-12'>
+                            <input class='form-control m-2' type='text' id='wshost' />
+                        </div>
+                        <label class='text-secondary m-2'>port:</label>
+                        <div class="col-sm-12">
+                            <input class='form-control m-2' type='numeric' id='wsport' />
+                        </div>
+                    </div>
+                </div>
+                <div class='modal-footer'>
+                    <button type='button' class='btn btn-secondary' data-dismiss='modal'>Close</button>
+                    <button type='button' class='btn btn-danger' id='saveSettings'>Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container m-2 border">
+        <div class="row">
+            <button id='iproute' class="btn btn-outline-secondary m-2">Show Routes</button>
+            <button id='ipaddr' class="btn btn-outline-secondary m-2">Show IP addresses</button>
+            <button id='showhosts' class="btn btn-outline-secondary m-2">Show Hosts</button>
+            <button id='showenv' class="btn btn-outline-secondary m-2">Show Environment</button>
+            <button id='showresolv' class="btn btn-outline-secondary m-2">Show Resolver</button>
+        </div>
+    </div>
+    <div class="accordion" id="accordionFunctions">
+        <div class="card">
+            <div class="card-header" id="headingFunctions">
+                <h5 class="mb-0">
+                    <button class="btn btn-outline-secondary m-2 collapsed" type="button" data-toggle="collapse"
+                        data-target="#collapsePing" aria-expanded="true" aria-controls="collapsePing">
+                        ICMP Ping
+                    </button>
+                    <button class="btn btn-outline-secondary m-2 collapsed" type="button" data-toggle="collapse"
+                        data-target="#collapseTCPing" aria-expanded="true" aria-controls="collapseTCPing">
+                        TCP Ping
+                    </button>
+                    <button class="btn btn-outline-secondary m-2 collapsed" type="button" data-toggle="collapse"
+                        data-target="#collapseDNS" aria-expanded="true" aria-controls="collapseDNS">
+                        DNS Lookup
+                    </button>
+                    <button class="btn btn-outline-secondary m-2 collapsed" type="button" data-toggle="collapse"
+                        data-target="#collapseHTTP" aria-expanded="true" aria-controls="collapseHTTP">
+                        HTTP GET (statistics)
+                    </button>
+                    <button class="btn btn-outline-secondary m-2 collapsed" type="button" data-toggle="collapse"
+                        data-target="#collapseSockperf" aria-expanded="true" aria-controls="collapseSockperf">
+                        Performance Test
+                    </button>
+                    <button class="btn btn-outline-secondary m-2 collapsed" type="button" data-toggle="collapse"
+                        data-target="#collapseWebscreenshot" aria-expanded="true" aria-controls="collapseWebscreenshot">
+                        Web Screenshot
+                    </button>
+                    <button class="btn btn-outline-secondary m-2 collapsed" type="button" data-toggle="collapse"
+                        data-target="#collapseCommand" aria-expanded="true" aria-controls="collapseCommand">
+                        Run Command
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapsePing" class="collapse" aria-labelledby="headingFunctions"
+                data-parent="#accordionFunctions">
+                <div class="card-body">
+                    <div class='form-group m-1' id='pinggroup'>
+                        <div class="row">
+                            <label class='text-secondary m-2'>target:</label>
+                            <div class='col-sm-5'>
+                                <input class='form-control m-2' type='text' id='pinghost' placeholder='hostname or IP'>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label class='text-secondary m-2'>count:</label>
+                            <div class="col-sm-3 m-2">
+                                <select class="form-control" id='pingcount'>
+                                    <option value=1>1</option>
+                                    <option value=5>5</option>
+                                    <option value=10>10</option>
+                                    <option value=50>50</option>
+                                    <option value=0>Ongoing</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button id='pingbutton' class="btn btn-outline-secondary m-2">Ping</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="collapseTCPing" class="collapse" aria-labelledby="headingFunctions"
+                data-parent="#accordionFunctions">
+                <div class="card-body">
+                    <div class='form-group m-1' id='tcpinggroup'>
+                        <div class='row'>
+                            <label class='text-secondary m-2'>target:</label>
+                            <div class='col-sm-3'>
+                                <input class='form-control m-2' type='text' id='tcpinghost'
+                                    placeholder='hostname or IP'>
+                            </div>
+                            <label class='text-secondary m-2'>dest port:</label>
+                            <div class='col-sm-2'>
+                                <input class='form-control m-2' type='text' id='tcpingport' placeholder='port'>
+                            </div>
+                        </div>
+                        <div class='row'>
+                            <label class='text-secondary m-2'>count:</label>
+                            <div class="col-sm-2 m-2">
+                                <select class="form-control" id='tcpingcount'>
+                                    <option value=1 selected>1</option>
+                                    <option value=5>5</option>
+                                    <option value=10>10</option>
+                                    <option value=50>50</option>
+                                    <option value=0>Ongoing</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button id='tcpingbutton' class="btn btn-outline-secondary m-2">TCP Ping</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="collapseDNS" class="collapse" aria-labelledby="headingFunctions" data-parent="#accordionFunctions">
+                <div class="card-body">
+                    <div class='form-group m-1' id='dnsgroup'>
+                        <div class='row'>
+                            <label class='text-secondary m-2'>target:</label>
+                            <div class="col-sm-5">
+                                <input class='form-control m-2' type='text' id='dnshost' placeholder='FQDN'>
+                            </div>
+                            <label class='text-secondary m-1'>@</label>
+                            <div class="col-sm-2">
+                                <input class='form-control m-1' type='text' id='dnsnameserver'
+                                    placeholder='nameserver IP'>
+                            </div>
+                        </div>
+                        <div class='row'>
+                            <label class='text-secondary m-1'>type:</label>
+                            <div class="col-sm-2">
+                                <select class="form-control m-1" id='dnstype'>
+                                    <option value='A'>A</option>
+                                    <option value='CNAME'>CNAME</option>
+                                    <option value='PTR'>PTR</option>
+                                    <option value='NS'>NS</option>
+                                    <option value='SOA'>SOA</option>
+                                    <option value='TXT'>TXT</option>
+                                    <option value='SRV'>SRV</option>
+                                    <option value='MX'>MX</option>
+                                    <option value='ALIAS'>ALIAS</option>
+                                    <option value='AAAA'>AAAA</option>
+                                    <option value='ANY'>ANY</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button id='dnsbutton' class="btn btn-outline-secondary m-2">Lookup</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="collapseHTTP" class="collapse" aria-labelledby="headingFunctions"
+                data-parent="#accordionFunctions">
+                <div class="card-body">
+                    <div class='form-group row m-1' id='httpgetgroup'>
+                        <label class='text-secondary m-2'>target:</label>
+                        <div class="col-sm-5">
+                            <input class='form-control m-2' type='text' id='geturl' placeholder='URL'>
+                        </div>
+                        <div>
+                            <button id='geturlbutton' class="btn btn-outline-secondary m-2">GET</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="collapseSockperf" class="collapse" aria-labelledby="headingFunctions"
+                data-parent="#accordionFunctions">
+                <div class="card-body">
+                    <div class='form-group m-1' id='sockperfgroup'>
+                        <div class="row">
+                            <label class='text-secondary m-2'>source label:</label>
+                            <div class="col-sm-3">
+                                <input class='form-control m-2' type='text' id='sockperfsourcelabel' placeholder=''>
+                            </div>
+                            <label class='text-secondary m-2'>target label:</label>
+                            <div class="col-sm-3">
+                                <input class='form-control m-2' type='text' id='sockperftargetlabel' placeholder=''>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label class='text-secondary m-2'>target: (IP/DNS)</label>
+                            <div class="col-sm-3">
+                                <input class='form-control m-2' type='text' id='sockperftarget' placeholder=''>
+                            </div>
+                            <label class='text-secondary m-2'>port:</label>
+                            <div class="col-sm-3">
+                                <input class='form-control m-2' type='number' id='sockperfport' min='1' max='65535'
+                                    placeholder='11111' value='11111'>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label class='text-secondary m-2'>latency test:</label>
+                            <div class="col-1 mx-1 my-2">
+                                <input class='form-check-input' type='checkbox' id='sockperflatency' checked>
+                            </div>
+                            <label class='text-secondary m-2'>bandwidth tests:</label>
+                            <div class="col-1 mx-1 my-2">
+                                <input class='form-check-input' type='checkbox' id='sockperfbandwidth' checked>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label class='text-secondary m-2'>runs:</label>
+                            <div class="col-1">
+                                <input class='form-control m-1' type='number' id='sockperfcount' min='1' max='100'
+                                    placeholder='1' value='1'>
+                            </div>
+                            <div>
+                                <button id='runsockperfbutton' class="btn btn-outline-secondary m-2">RUN</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="collapseWebscreenshot" class="collapse" aria-labelledby="headingFunctions"
+                data-parent="#accordionFunctions">
+                <div class="card-body">
+                    <div class='form-group row m-1' id='websnapshot'>
+                        <label class='text-secondary m-2'>target:</label>
+                        <div class="col-sm-5">
+                            <input class='form-control m-2' type='text' id='websnapshoturl' placeholder='URL'>
+                        </div>
+                        <div>
+                            <button id='websnapshoturlbutton' class="btn btn-outline-secondary m-2">GET</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="collapseCommand" class="collapse" aria-labelledby="headingFunctions"
+                data-parent="#accordionFunctions">
+                <div class="card-body">
+                    <div class='form-group row m-1' id='commandgroup'>
+                        <label class='text-secondary m-2'>command:</label>
+                        <div class="col-sm-8">
+                            <input class='form-control m-2' type='text' id='genericcommand' placeholder='Command'>
+                        </div>
+                        <div>
+                            <button id='genericcommandbutton' class="btn btn-outline-secondary m-2">Run Command</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="container m-2 border" style='display: none; padding:10px;' id='outputs'>
+        <div class='mb-4 text-secondary' style='font-family: monospace' id='commandsend'></div>
+        <div id='stderr' style='display: none;'>
+            <div class='p-2 mb-2 text-white bg-danger'>Command Error</div>
+            <div class="p-2 row h-100 align-items-center">
+                <div id='commanderr'
+                    style='font-family: monospace; font-size: x-small; white-space: pre; padding: 10px; max-width: 80%; overflow: auto;'>
+                </div>
+            </div>
+        </div>
+        <div id='stdout' style='display: none;'>
+            <div class='p-2 mb-2 text-white bg-secondary'>Command Output</div>
+            <div class="p-2 row h-100 align-items-center">
+                <div id='commandout'
+                    style='font-family: monospace; font-size: x-small; white-space: pre; padding: 10px; max-width: 80%; overflow: auto;'>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container px-4 px-lg-5"><div class="small text-center text-muted">Copyright &copy; 2021 - F5 Networks</div></div>
+    </footer>
+    <script>
+
+        var commandRunning = false;
+
+        var wsHostname = '{{ hostname }}';
+        var wsNameserver = '{{ nameserver }}';
+        var wsProtocol = 'ws:';
+        var wsHost = location.hostname;
+        var wsPort = location.port;
+
+        var banner = "{{ banner_text }}";
+
+        var socket = false;
+
+        function updateWsHostFromLocation() {
+            if (location.protocol === 'https:') {
+                wsProtocol = 'wss:'
+            }
+            if (!location.port) {
+                wsPort = 80;
+                if (location.protocol == 'https:') {
+                    wsPort = 443;
+                }
+            }
+            $('#wsprotocol').val(wsProtocol);
+            $('#wshost').val(wsHost);
+            $('#wsport').val(wsPort);
+        }
+
+        function connect() {
+            if (socket.connected) {
+                socket.disconnect();
+                socket = false;
+            }
+            if (!socket) {
+                console.log('connecting to ' + wsProtocol + '//' + wsHost + ':' + wsPort);
+                socket = io(wsProtocol + '//' + wsHost + ':' + wsPort, { forceNew: true });
+            }
+            setHandlers(socket);
+        }
+
+        function setHandlers(socket) {
+            socket.on("connect", () => {
+                console.log('connected socket id: ' + socket.id);
+                getHostname();
+                getNameserver();
+            });
+
+            socket.on('disconnect', function (reason) {
+                console.log('disconnected from webservice: ' + reason);
+                if (reason === 'io server disconnect') {
+                    connect()
+                }
+            });
+
+            socket.on('variableResponse', function (message) {
+                console.log('got variable message: ' + JSON.stringify(message));
+                if (message.variableName == "wsHostname") {
+                    wsHostname = message.variableValue;
+                    $('#hostname').removeClass('text-danger').addClass('text-success').text(wsHostname);
+                    $('#sockperfsourcelabel').val(wsHostname);
+                    $('#outputs').hide();
+                    stopSpin();
+                    resetUI();
+                }
+                if (message.variableName == "wsNameserver") {
+                    wsNameserver = message.variableValue;
+                    $('#dnsnameserver').val(wsNameserver);
+                    $('#outputs').hide();
+                    stopSpin();
+                    resetUI();
+                }
+                commandRunning = false;
+            });
+
+            socket.on('commandResponse', function (message) {
+                console.log('got commandResposne message: ' + JSON.stringify(message));
+                if (commandRunning && message.id == commandRunning) {
+                    if (message.stream == "stdout") {
+                        $('#stdout').show();
+                        $('#commandout').append(message.data);
+                    }
+                    if (message.stream == "stderr") {
+                        $('#stderr').show();
+                        $('#commanderr').append(message.data);
+                    }
+                    if (message.stream == "image") {
+                        $('#stdout').show();
+                        $('#commandout').append('\n<p><img src=' + message.data + ' style="display: block; max-width: 100%; height: auto;"></p></b>\n');
+                    }
+                    if (message.stream == "completed") {
+                        commandRunning = false;
+                        if (message.data == 0) {
+                            $('#stdout').show();
+                            $('#commandout').append('\n<b>command completed with return code:' + message.data + '</b>\n');
+                            stopSpin();
+                            resetUI();
+                        } else {
+                            $('#stderr').show();
+                            $('#commanderr').append('\n<b>command completed with return code:' + message.data + '</b>\n');
+                            stopSpin();
+                            resetUI();
+                        }
+                    }
+                } else {
+                    console.log('commandResponse does not match running id:' + commandRunning)
+                }
+            });
+        }
+
+        function getHostname() {
+            let cmd = {
+                type: 'variable',
+                target: 'wsHostname',
+                cmd: ['hostname']
+            }
+            issueCmd(cmd);
+        }
+
+        function getNameserver() {
+            let cmd = {
+                type: 'variable',
+                target: 'wsNameserver',
+                cmd: ['nameserver']
+            }
+            issueCmd(cmd);
+        }
+
+        function uuidv4() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        function issueCmd(cmd) {
+            spin();
+            $('#outputs').show();
+            $('#stderr').hide();
+            $('#stdout').hide();
+            $('#commandsend').text(cmd.type + ' - ' + cmd.target);
+            $('#commanderr').text('');
+            $('#commandout').text('');
+            commandId = uuidv4()
+            cmd.id = commandId
+            commandRunning = commandId;
+            console.log('sending command: ' + JSON.stringify(cmd));
+            socket.send('commandRequest', cmd);
+        };
+
+        function haltCmd() {
+            if (commandRunning) {
+                let cmd = {
+                    id: commandRunning,
+                    type: 'halt'
+                }
+                console.log('sending command: ' + JSON.stringify(cmd));
+                socket.send('commandRequest', cmd);
+            }
+        }
+
+        function spin() {
+            $('#progress').css('width', '100%').addClass('progress-bar-stripped progress-bar-animated active');
+            $('#progress').html('<span class="spinner-border spinner-border-sm ml-auto"></span>');
+        }
+
+        function stopSpin() {
+            $('#progress').css('width', '0%').removeClass('progress-bar-stripped progress-bar-animated active').html('');
+        }
+
+        function resetUI() {
+            $('#pingbutton').removeClass('btn-danger').text('Ping');
+            $('#tcpingbutton').removeClass('btn-danger').text('TCP Ping');
+            $('#genericcommandbutton').removeClass('btn-danger').text('Run command');
+        }
+
+        $(document).ready(function () {
+
+            $('#outputs').hide();
+
+            if (banner) {
+                $('#banner').html(banner).removeClass('invisible');
+            }
+
+            updateWsHostFromLocation();
+            connect();
+
+            $('#saveSettings').click(function () {
+                wsProtocol = $('#wsprotocol').val();
+                wsHost = $('#wshost').val();
+                wsPort = parseInt($('#wsport').val());
+                wsHostname = 'connecting...'
+                $('#hostname').removeClass('text-success').addClass('text-danger').text(wsHostname);
+                $('#settingsModal').modal('hide');
+                connect();
+            });
+
+            $('#iproute').click(function () {
+                let cmd = {
+                    type: 'ip route',
+                    target: 'localhost',
+                    cmd: [
+                        'ip',
+                        'route'
+                    ]
+                }
+                issueCmd(cmd);
+            });
+
+            $('#ipaddr').click(function () {
+                let cmd = {
+                    type: 'ip addr',
+                    target: 'localhost',
+                    cmd: [
+                        'ip',
+                        'addr'
+                    ]
+                }
+                issueCmd(cmd);
+            });
+
+            $('#showhosts').click(function () {
+                let cmd = {
+                    type: 'cat /etc/hosts',
+                    target: 'localhost',
+                    cmd: [
+                        'cat',
+                        '/etc/hosts'
+                    ]
+                }
+                issueCmd(cmd);
+            });
+
+            $('#showenv').click(function () {
+                let cmd = {
+                    type: 'env',
+                    target: 'localhost',
+                    cmd: [
+                        'env'
+                    ]
+                }
+                issueCmd(cmd);
+            });
+
+            $('#showresolv').click(function () {
+                let cmd = {
+                    type: 'resolv',
+                    target: 'localhost',
+                    cmd: [
+                        'cat',
+                        '/etc/resolv.conf'
+                    ]
+                }
+                issueCmd(cmd);
+            })
+
+            $('#pingbutton').click(function () {
+                if (commandRunning) {
+                    stopSpin();
+                    resetUI();
+                    haltCmd();
+                    commandRunning = false;
+                    return;
+                }
+                let pingcount = $('#pingcount').val();
+                let cmd = {
+                    type: 'ping',
+                    target: $('#pinghost').val(),
+                    cmd: [
+                        'ping',
+                        $('#pinghost').val()
+                    ]
+                }
+                if (pingcount > 0) {
+                    cmd.cmd = [
+                        'ping',
+                        '-c',
+                        pingcount,
+                        $('#pinghost').val()
+                    ]
+                } else {
+                    $('#pingbutton').addClass('btn-danger').text('Stop');
+                }
+                issueCmd(cmd);
+            });
+
+
+            $('#tcpingbutton').click(function () {
+                if (commandRunning) {
+                    stopSpin();
+                    resetUI();
+                    haltCmd();
+                    commandRunning = false;
+                    return;
+                }
+                let tcpingcount = $('#tcpingcount').val();
+                let cmd = {
+                    type: 'tcping',
+                    target: $('#tcpinghost').val(),
+                    cmd: [
+                        'tcping',
+                        '-x',
+                        '2',
+                        $('#tcpinghost').val(),
+                        $('#tcpingport').val()
+                    ]
+                }
+                if (tcpingcount > 0) {
+                    cmd.cmd = [
+                        'tcping',
+                        '-x',
+                        (parseInt(tcpingcount) + 1).toString(),
+                        $('#tcpinghost').val(),
+                        $('#tcpingport').val()
+                    ]
+                } else {
+                    $('#tcpingbutton').addClass('btn-danger').text('Stop');
+                }
+                issueCmd(cmd);
+            });
+
+            $('#dnsbutton').click(function () {
+                let recordType = $('#dnstype').val();
+                let cmd = {
+                    type: 'dig',
+                    target: $('#dnshost').val() + ' ' + recordType,
+                    cmd: [
+                        'dig',
+                        '@' + $('#dnsnameserver').val(),
+                        $('#dnshost').val(),
+                        recordType
+                    ]
+                }
+                issueCmd(cmd)
+            });
+
+            $('#runsockperfbutton').click(function () {
+                let cmd = {
+                    type: 'performance',
+                    target: $('#sockperftarget').val(),
+                    port: $('#sockperfport').val(),
+                    sourcelabel: $('#sockperfsourcelabel').val(),
+                    targetlabel: $('#sockperftargetlabel').val(),
+                    latency: $('#sockperflatency').is(':checked'),
+                    bandwidth: $('#sockperfbandwidth').is(':checked'),
+                    runcount: $('#sockperfcount').val(),
+                    cmd: ''
+                }
+                issueCmd(cmd)
+            });
+
+            $('#geturlbutton').click(function () {
+                let cmd = {
+                    type: 'HTTP GET statistics',
+                    target: $('#geturl').val(),
+                    cmd: [
+                        'curl',
+                        '-H',
+                        'Connection: close',
+                        '-k',
+                        '-L',
+                        '-s',
+                        '-o',
+                        '/dev/null',
+                        '-w',
+                        ' http_status_code: %{http_code}\n content_type: %{content_type}%\n dns_resolution: %{time_namelookup}\n tcp_established: %{time_connect}\n ssl_handshake_done: %{time_appconnect}\n TTFB: %{time_starttransfer}\n speed_download: %{speed_download}\n speed_upload: %{speed_upload}\n total_time: %{time_total}\n size: %{size_download}\n\n',
+                        $('#geturl').val()
+                    ]
+                }
+                issueCmd(cmd)
+            });
+
+            $('#websnapshoturlbutton').click(function () {
+                let cmd = {
+                    type: 'webscreenshot',
+                    target: $('#websnapshoturl').val(),
+                    cmd: ''
+                }
+                issueCmd(cmd);
+            });
+
+            $('#genericcommandbutton').click(function () {
+                if (commandRunning) {
+                    stopSpin();
+                    resetUI();
+                    haltCmd();
+                    commandRunning = false;
+                    return;
+                }
+                let cmd = {
+                    type: 'Running Command',
+                    target: $('#genericcommand').val(),
+                    cmd: $('#genericcommand').val()
+                }
+                $('#genericcommandbutton').addClass('btn-danger').text('Stop');
+                issueCmd(cmd);
+            });
+        });
+
+    </script>
+</body>
+
+</html>
