@@ -92,8 +92,7 @@ $("#start-demo1").on("click", () => {
 });
 $('#run-demo1').on("click", () => {
     const protocol = 'cosmos';
-    // const fqdn = 'cosmos.default';
-    const fqdn = 'goldman-sachs.documents.azure.com';
+    const fqdn = 'cosmos.default';
     const port = 443;
     const service = '';
     $("#demo1-error").html('').hide();
