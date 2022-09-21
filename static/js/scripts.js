@@ -9,7 +9,14 @@
 //
 // Scripts
 //
-
+const demo1FailedImage = '/static/assets/img/service_disconnected_to_azure_cloud.svg';
+const demo1SuccessImage = '/static/assets/img/service_connected_to_azure_cloud.svg';
+const demo2FailedImage = '/static/assets/img/service_disconnected_to_service.svg';
+const demo2SuccessImage = '/static/assets/img/service_connected_to_service.svg';
+const demo3FailedImage = '/static/assets/img/service_disconnected_to_secured_web';
+const demo3SuccessImage = '/static/assets/img/service_to_secured_web';
+const demo4FailedImage = '/static/assets/img/office_disconnected_to_secured_web';
+const demo4SuccessImage = '/static/assets/img/office_to_secured_web';
 
 window.addEventListener('DOMContentLoaded', event => {
 
@@ -84,11 +91,14 @@ $("#start-demo1").on("click", () => {
     $("#demo1-error").hide();
 });
 $('#run-demo1').on("click", () => {
-    const fqdn = 'remoteservice.default';
-    service_name = 'demoservice';
+    const protocol = 'cosmos';
+    // const fqdn = 'cosmos.default';
+    const fqdn = 'goldman-sachs.documents.azure.com';
+    const port = 443;
+    const service = '';
     $("#demo1-error").html('').hide();
     $("#demo1-ouput").html('').hide();
-    $("#demo1-diagram").attr("src",'/static/assets/img/service_disconnected_to_service.svg');
+    $("#demo1-diagram").attr("src",demo1FailedImage);
     $("#spinner-demo1").show();
     fetch('/resolv?fqdn=' + fqdn)
     .then((response) => {
@@ -101,16 +111,21 @@ $('#run-demo1').on("click", () => {
     })
     .then((data) => {
         $('#demo1-output').html("service " + fqdn + " resolved to: " + data.ips[0]).show();
-        fetch('/webproxy?url=http://' + fqdn + '/' + service_name)
+        const url = encodeURIComponent(protocol + '://' + fqdn + ':' + port + '/' + service + '?dbname=' + $('#cosmos-db-name').val() + '&dbkey=' + $('#cosmos-db-key').val());
+        fetch('/dbconnect?url=' + url)
         .then((response) => {
             if (response.status > 399) {
-                $("#demo1-error").html("<h2>service " + fqdn + " error: " + response.statusText + "</h2>").show();
-                throw Error('Not found');
+                response.json().then( val => {
+                    $("#demo1-error").html("service error:<br/><pre>" + val.message + "</pre>").show();
+                    throw Error(val.message);
+                });
             } else {
                 $("#demo1-error").html("").hide();
-                $("#demo1-diagram").attr("src",'/static/assets/img/service_to_service.svg');
-                const output = $("#demo1-output").html() + "<br/>Status:" + response.status;
-                $("#demo1-output").html(output).show();
+                $("#demo1-diagram").attr("src",demo1SuccessImage);
+                response.json().then ( val => {
+                    const output = $("#demo1-output").html() + "<br/>Status: " + val.message;
+                    $("#demo1-output").html(output).show();
+                });
             }
         });
     }).catch( (error) => {
@@ -133,12 +148,12 @@ $("#start-demo2").on("click", () => {
     $("#demo2-error").hide();
 });
 $('#run-demo2').on("click", () => {
-    protocol = 'postgress';
-    const fqdn = 'remotedb.default';
-    db_name = 'appdb';
+    const protocol = 'http';
+    const fqdn = 'securedweb.default';
+    service_name = '';
     $("#demo2-error").html('').hide();
     $("#demo2-ouput").html('').hide();
-    $("#demo2-diagram").attr("src",'/static/assets/img/service_disconnected_to_db.svg');
+    $("#demo2-diagram").attr("src",demo2FailedImage);
     $("#spinner-demo2").show();
     fetch('/resolv?fqdn=' + fqdn)
     .then((response) => {
@@ -151,16 +166,20 @@ $('#run-demo2').on("click", () => {
     })
     .then((data) => {
         $('#demo2-output').html("service " + fqdn + " resolved to: " + data.ips[0]).show();
-        fetch('/dbconnect?url=' + protocol + '://' + fqdn + '/' + db_name)
+        fetch('/webproxy?url='+ protocol + '://' + fqdn + '/' + service_name)
         .then((response) => {
             if (response.status > 399) {
-                $("#demo2-error").html("<h2>service " + fqdn + " error: " + response.statusText + "</h2>").show();
-                throw Error('Not found');
+                response.json().then( val => {
+                    $("#demo2-error").html("service error:<br/><pre>" + val.message + "</pre>").show();
+                    throw Error(val.message);
+                });
             } else {
                 $("#demo2-error").html("").hide();
-                $("#demo2-diagram").attr("src",'/static/assets/img/service_to_db.svg');
-                const output = $("#demo2-output").html() + "<br/>Status:" + response.status;
-                $("#demo2-output").html(output).show();
+                $("#demo2-diagram").attr("src",demo1SuccessImage);
+                response.json().then ( val => {
+                    const output = $("#demo2-output").html() + "<br/>Status: " + val.message;
+                    $("#demo2-output").html(output).show();
+                });
             }
         });
     }).catch( (error) => {
@@ -182,11 +201,12 @@ $("#start-demo3").on("click", () => {
     $("#demo3-error").hide();
 });
 $('#run-demo3').on("click", () => {
-    const fqdn = 'azureservice.default';
-    service_name = 'demoservice';
+    const protocol = 'http';
+    const fqdn = 'webfrontend.default';
+    service_name = '';
     $("#demo3-error").html('').hide();
     $("#demo3-ouput").html('').hide();
-    $("#demo3-diagram").attr("src",'/static/assets/img/service_disconnected_to_azure_cloud.svg');
+    $("#demo3-diagram").attr("src",demo3FailedImage);
     $("#spinner-demo3").show();
     fetch('/resolv?fqdn=' + fqdn)
     .then((response) => {
@@ -199,16 +219,20 @@ $('#run-demo3').on("click", () => {
     })
     .then((data) => {
         $('#demo3-output').html("service " + fqdn + " resolved to: " + data.ips[0]).show();
-        fetch('/webproxy?url=http://' + fqdn + '/' + service_name)
+        fetch('/webproxy?url=' + protocol + '://' + fqdn + '/' + service_name)
         .then((response) => {
             if (response.status > 399) {
-                $("#demo3-error").html("<h2>service " + fqdn + " error: " + response.statusText + "</h2>").show();
-                throw Error('Not found');
+                response.json().then( val => {
+                    $("#demo3-error").html("service error:<br/><pre>" + val.message + "</pre>").show();
+                    throw Error(val.message);
+                });
             } else {
                 $("#demo3-error").html("").hide();
-                $("#demo3-diagram").attr("src",'/static/assets/img/service_to_azure_cloud.svg');
-                const output = $("#demo3-output").html() + "<br/>Status:" + response.status;
-                $("#demo3-output").html(output).show();
+                $("#demo3-diagram").attr("src",demo1SuccessImage);
+                response.json().then ( val => {
+                    const output = $("#demo3-output").html() + "<br/>Status: " + val.message;
+                    $("#demo3-output").html(output).show();
+                });
             }
         });
     }).catch( (error) => {
@@ -229,13 +253,42 @@ $("#start-demo4").on("click", () => {
     $("#demo4-error").hide();
 });
 $('#run-demo4').on("click", () => {
-    const fqdn = '/dump';
-    service_name = 'demo4service';
+    const protocol = 'https';
+    const fqdn = 'gsapp.f5xc.edgesite.app';
+    service_name = 'demoservice';
     $("#demo4-error").html('').hide();
     $("#demo4-ouput").html('').hide();
+    $("#demo4-diagram").attr("src",demo4FailedImage);
     $("#spinner-demo4").show();
-    $("#globalsite-display-frame").on("load", () => {
-        $("#spinner-demo4").hide();
-    });
-    $("#globalsite-display-frame").attr("src",fqdn);
+    fetch('/resolv?fqdn=' + fqdn)
+    .then((response) => {
+        if (response.status == 404) {
+            $("#demo4-error").html("service " + fqdn + " not found..").show();
+            throw Error('Not found');
+        } else {
+            return response.json();
+        }
+    })
+    .then((data) => {
+        $('#demo4-output').html("service " + fqdn + " resolved to: " + data.ips[0]).show();
+        fetch('/webproxy?url=' + protocol + '://' + fqdn + '/' + service_name)
+        .then((response) => {
+            if (response.status > 399) {
+                response.json().then( val => {
+                    $("#demo4-error").html("service error:<br/><pre>" + val.message + "</pre>").show();
+                    throw Error(val.message);
+                });
+            } else {
+                $("#demo4-error").html("").hide();
+                $("#demo4-diagram").attr("src",demo1SuccessImage);
+                response.json().then ( val => {
+                    const output = $("#demo1-output").html() + "<br/>Status: " + val.message;
+                    $("#demo4-output").html(output).show();
+                    window.open(protocol + '://' + fqdn + '/' + service_name, '_blank');
+                });
+            }
+        });
+    }).catch( (error) => {
+
+    }).finally( () => { $('#spinner-demo4').hide(); });
 });

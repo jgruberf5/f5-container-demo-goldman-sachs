@@ -17,6 +17,7 @@ import pydig
 
 from werkzeug.utils import secure_filename
 from urllib.parse import urlparse
+from urllib.parse import parse_qs
 from urllib.error import URLError
 
 from flask import Flask, request, render_template, Response, send_from_directory
@@ -28,6 +29,8 @@ from threading import Thread, Event
 from psycopg2 import connect
 from sqlalchemy import create_engine
 from pymongo import MongoClient
+from azure.cosmos import CosmosClient as cosmos_client
+from azure.cosmos import exceptions as cosmos_exceptions
 
 CONFIG_FILE = os.getenv('CONFIG_FILE', './config.yaml')
 CONFIG_MAP_DIR = '/etc/container-demo-runner'
@@ -306,12 +309,13 @@ def performance_test(sid, id, sourcelabel, targetlabel, target, port, runcount, 
 
 def db_connect_postgress(
         host='localhost', user='admin', password='admin', dbname='demo',
-        use_tls=False, tls_client_cert='./postgres.crt',
-        tls_client_key='./postgres.key', tls_ca_cert='./postgres.ca',
+        use_tls=False, tls_client_cert=None,
+        tls_client_key=None, tls_ca_cert='./postgres.ca',
         tls_verify=False):
     args = {
         "host": host,
         "user": user,
+        "password": password,
         "dbname": dbname
     }
     if use_tls:
@@ -322,8 +326,6 @@ def db_connect_postgress(
             args["sslmode"] = "verify-full"
         else:
             args["sslmode"] = "allow"
-    else:
-        args["password"] = password
     try:
         db = create_engine('postgresql+psycopg2://', connect_args=args)
         connection = db.connect()
@@ -347,8 +349,8 @@ def db_connect_postgress(
 
 def db_connect_mongodb(
         host='localhost', user='admin', password='admin', dbname='demo',
-        use_tls=False, tls_client_cert='./mongo.crt',
-        tls_client_key='./mongo.key', tls_ca_cert='./mongo.ca',
+        use_tls=False, tls_client_cert=None,
+        tls_client_key=None, tls_ca_cert=None,
         tls_verify=False):
     tls_client_combined = './mongo.combined'
     if use_tls:
@@ -380,6 +382,25 @@ def db_connect_mongodb(
             "error": True,
             "error_message": str(ex)
         }
+
+
+def db_connect_cosmos(endpoint=None, clientkey=None, database='test'):
+    with cosmos_client(endpoint, credential=clientkey) as client:
+        response = {
+            "url": endpoint,
+            "error": None,
+            "message": None
+        }
+        try:
+            database = client.create_database(database)
+            response["message"] = f"Successfully created to DB id: {database.id}"
+        except cosmos_exceptions.CosmosResourceExistsError:
+            database = client.get_database_client(database)
+            response["message"] = f"Successfully connected to DB id: {database.id}"
+        except cosmos_exceptions.CosmosHttpResponseError as chre:
+            response["error"] = 400
+            response["message"] = str(chre)
+        return response
 
 
 @app.route('/')
@@ -573,7 +594,7 @@ def dbconnect():
     if rargs.get("url"):
         try:
             db_url = urlparse(rargs.get("url"))
-            if db_url.scheme not in ['mongodb', 'postgres', 'sqlite']:
+            if db_url.scheme not in ['mongodb', 'postgres', 'cosmos']:
                 return Response(
                     json.dumps({
                         "url": rargs.get("url"),
@@ -581,9 +602,36 @@ def dbconnect():
                         "message": f"invalid DB URL scheme: {db_url.scheme}"
                     }),
                     status=400, mimetype='application/json')
-            # define type of DB and attemp the correct type of connect
+            # define type of DB and attempt the correct type of connect
             # and return the version of the db we are connected to
-
+            if db_url.scheme == 'cosmos':
+                cosmos_url = f"https://{db_url.hostname}:{db_url.port}"
+                print(db_url.query)
+                qs = parse_qs(db_url.query)
+                cosmos_db_name = None
+                cosmos_db_key = None
+                print(qs)
+                if 'dbname' in qs:
+                    cosmos_db_name = qs['dbname'][0]
+                if 'dbkey' in qs:
+                    cosmos_db_key = qs['dbkey'][0]
+                print(cosmos_db_key)
+                try:
+                    response = db_connect_cosmos(cosmos_url, cosmos_db_key, cosmos_db_name)
+                    response_status = 200
+                    if response['error']:
+                        response_status = response['error']
+                    return Response(
+                        json.dumps(response),
+                        status=response_status, mimetype='application/json')
+                except Exception as ex:
+                    return Response(
+                        json.dumps({
+                            "url": cosmos_url,
+                            "error": 500,
+                            "message": f"DB connection error: {ex}"
+                        }),
+                        status=500, mimetype='application/json')
         except URLError as ue:
             return Response(
                 json.dumps({

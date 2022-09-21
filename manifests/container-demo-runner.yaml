@@ -86,6 +86,8 @@ spec:
           value: 000000
         - name: BANNER_TEXT_COLOR
           value: ffffff
+        - name: DEMO_LOCATION
+          value: My Cool Site Name Goes Here
 ---
 apiVersion: v1
 kind: Service

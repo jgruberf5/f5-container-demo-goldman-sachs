@@ -1,5 +1,7 @@
 appdirs==1.4.4
 autopep8==1.5.7
+azure-core==1.25.1
+azure-cosmos==4.3.0
 backports.zoneinfo==0.2.1
 bidict==0.21.2
 Brotli==1.0.9
