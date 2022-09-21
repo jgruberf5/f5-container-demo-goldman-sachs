@@ -109,7 +109,7 @@ $('#run-demo1').on("click", () => {
         }
     })
     .then((data) => {
-        $('#demo1-output').html("service " + fqdn + " resolved to: " + data.ips[0]).show();
+        $('#demo1-output').html("service " + fqdn + " resolved to: " + data.message).show();
         const url = encodeURIComponent(protocol + '://' + fqdn + ':' + port + '/' + service + '?dbname=' + $('#cosmos-db-name').val() + '&dbkey=' + $('#cosmos-db-key').val());
         fetch('/dbconnect?url=' + url)
         .then((response) => {
@@ -164,7 +164,7 @@ $('#run-demo2').on("click", () => {
         }
     })
     .then((data) => {
-        $('#demo2-output').html("service " + fqdn + " resolved to: " + data.ips[0]).show();
+        $('#demo2-output').html("service " + fqdn + " resolved to: " + data.message).show();
         fetch('/webproxy?url='+ protocol + '://' + fqdn + '/' + service_name)
         .then((response) => {
             if (response.status > 399) {
@@ -217,7 +217,7 @@ $('#run-demo3').on("click", () => {
         }
     })
     .then((data) => {
-        $('#demo3-output').html("service " + fqdn + " resolved to: " + data.ips[0]).show();
+        $('#demo3-output').html("service " + fqdn + " resolved to: " + data.message).show();
         fetch('/webproxy?url=' + protocol + '://' + fqdn + '/' + service_name)
         .then((response) => {
             if (response.status > 399) {
@@ -269,7 +269,7 @@ $('#run-demo4').on("click", () => {
         }
     })
     .then((data) => {
-        $('#demo4-output').html("service " + fqdn + " resolved to: " + data.ips[0]).show();
+        $('#demo4-output').html("service " + fqdn + " resolved to: " + data.message).show();
         fetch('/webproxy?url=' + protocol + '://' + fqdn + '/' + service_name)
         .then((response) => {
             if (response.status > 399) {

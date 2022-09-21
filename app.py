@@ -113,6 +113,8 @@ def dig_fqdn(fqdn, record_type='A'):
         return str(result[0])
     except dns.resolver.NoAnswer:
         return None
+    except Exception:
+        return None
 
 
 def stream_emitter(id, event, stream_type, stream):
@@ -515,11 +517,14 @@ def proxy_resolv():
             dig_answer = dig_fqdn(rargs.get("fqdn"))
             if dig_answer:
                 resp = {
-                    "answer": dig_answer
+                    "fqdn": rargs.get("fqdn"),
+                    "error": None,
+                    "message": dig_answer
                 }
                 return Response(
                     json.dumps(resp),
-                    status=200, mimetype='application/json'
+                    status=200,
+                    mimetype='application/json'
                 )
             else:
                 return Response(
@@ -600,16 +605,13 @@ def dbconnect():
             # and return the version of the db we are connected to
             if db_url.scheme == 'cosmos':
                 cosmos_url = f"http://{db_url.hostname}:{db_url.port}"
-                print(db_url.query)
                 qs = parse_qs(db_url.query)
                 cosmos_db_name = None
                 cosmos_db_key = None
-                print(qs)
                 if 'dbname' in qs:
                     cosmos_db_name = qs['dbname'][0]
                 if 'dbkey' in qs:
                     cosmos_db_key = qs['dbkey'][0]
-                print(cosmos_db_key)
                 try:
                     response = db_connect_cosmos(cosmos_url, cosmos_db_key, cosmos_db_name)
                     response_status = 200
