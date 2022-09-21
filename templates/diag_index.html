@@ -680,9 +680,10 @@
                 let recordType = $('#dnstype').val();
                 let cmd = {
                     type: 'dig',
-                    target: $('#dnshost').val() + ' ' + recordType,
+                    target: $('#dnshost').val() + ' +search ' + recordType,
                     cmd: [
                         'dig',
+                        '+search',
                         '@' + $('#dnsnameserver').val(),
                         $('#dnshost').val(),
                         recordType

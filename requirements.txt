@@ -23,7 +23,6 @@ MarkupSafe==2.0.1
 psutil==5.8.0
 psycopg2==2.9.3
 pycodestyle==2.7.0
-pydig==0.4.0
 pyee==8.2.2
 pymongo==4.2.0
 pyppeteer==0.2.6

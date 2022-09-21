@@ -13,7 +13,6 @@ import re
 import requests
 import base64
 import dns.resolver
-import pydig
 
 from werkzeug.utils import secure_filename
 from urllib.parse import urlparse
@@ -109,7 +108,11 @@ def get_nameserver():
 
 
 def dig_fqdn(fqdn, record_type='A'):
-    return pydig.query(fqdn, record_type)
+    try:
+        result = dns.resolver.query(fqdn, record_type)
+        return str(result[0])
+    except dns.resolver.NoAnswer:
+        return None
 
 
 def stream_emitter(id, event, stream_type, stream):
@@ -511,17 +514,8 @@ def proxy_resolv():
         try:
             dig_answer = dig_fqdn(rargs.get("fqdn"))
             if dig_answer:
-                redirect = False
-                cname = None
-                ips = dig_answer
-                if dig_answer[0][-1] == ".":
-                    redirect = True
-                    cname = dig_answer[0][:-1]
-                    ips = dig_answer[1:]
                 resp = {
-                    "cnameRedirect": redirect,
-                    "cname": cname,
-                    "ips": ips
+                    "answer": dig_answer
                 }
                 return Response(
                     json.dumps(resp),
