@@ -605,7 +605,7 @@ def dbconnect():
             # define type of DB and attempt the correct type of connect
             # and return the version of the db we are connected to
             if db_url.scheme == 'cosmos':
-                cosmos_url = f"https://{db_url.hostname}:{db_url.port}"
+                cosmos_url = f"http://{db_url.hostname}:{db_url.port}"
                 print(db_url.query)
                 qs = parse_qs(db_url.query)
                 cosmos_db_name = None

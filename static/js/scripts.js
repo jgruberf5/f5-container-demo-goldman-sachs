@@ -93,7 +93,7 @@ $("#start-demo1").on("click", () => {
 $('#run-demo1').on("click", () => {
     const protocol = 'cosmos';
     const fqdn = 'cloudmongo.default';
-    const port = 443;
+    const port = 80;
     const service = '';
     $("#demo1-error").html('').hide();
     $("#demo1-ouput").html('').hide();
