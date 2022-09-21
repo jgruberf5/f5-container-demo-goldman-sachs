@@ -83,7 +83,7 @@
                     <div id="demo1-description">
                         <p class="text-75">
                             <img src="/static/assets/img/lisa.png" alt="Lisa" style="float: left; margin: 5px;">
-                            Lisa has deployed her application in multiple Satellite OpenShift Locations.
+                            Lisa has deployed her application in multiple Satellite Locations.
                             She needs to expose a remote cloud service to her application without
                             adding additional security or public access points of this cloud service.
                         </p>
@@ -93,7 +93,7 @@
                         <p class="text-75">
                             F5 Distributed Cloud can extend the application delivery network to
                             include a Customer Edge in the remote cloud. The cloud service then
-                            be published in Lisa's Satellite OpenShift clusters by a service name.
+                            be published in Lisa's Satellite clusters by a service name.
                         </p>
                         <div class="text-center">
                             <button class="btn btn-primary btn-l" id="start-demo1">Start Demo</button>
@@ -101,16 +101,16 @@
                     </div>
                     <div id="demo1-running" style="display: none;">
                         <p>
-                            This demonstration creates a client connection from within the Satellite OpenShift Location
+                            This demonstration creates a client connection from within the Satellite Location
                             <span class="fw-bolder fst-italic font-monospaces">{{ location }}</span> cluster to:
                         </p>
-                        <p class="text-center fw-bolder fst-italic font-monospace ml-5">https://cosmos.default</p>
+                        <p class="text-center fw-bolder fst-italic font-monospace ml-5">https://cloudmongo.default</p>
                         <p>
-                            The service inside of the OpenShift cluster will not exist until Lisa
+                            The service inside of the Satellite Location cluster will not exist until Lisa
                             publishes it to the clusters using the F5 Distributed Cloud console or
                             OpenAPI declarative API.
 
-                            Lisa should go publish the remote cloud service by the name: <span class="fw-bolder fst-italic font-monospace">'cosmos'</span>.
+                            Lisa should go publish the remote cloud service by the name: <span class="fw-bolder fst-italic font-monospace">'cloudmongo'</span>.
                         </p>
                         <div class="text-center mt-5 mb-5">
                             <img src='/static/assets/img/service_disconnected_to_azure_cloud.svg' width="480px" id="demo1-diagram">
@@ -142,12 +142,12 @@
             <div class="row justify-content-center">
                 <div class="col-lg-8 text-top">
                     <h2 class="mt-0 text-center">Demo 2</h2>
-                    <h3 class="text-center">Securing Satellite Location OpenShift Services</h3>
+                    <h3 class="text-center">Securing Satellite Location Services</h3>
                     <hr class="divider" />
                     <div id="demo2-description">
                         <p class="text-75">
                             <img src="/static/assets/img/lisa.png" alt="Lisa" style="float: left; margin: 5px;">
-                            The F5 Distributed Cloud Customer Edge is deployed inside the Satellite OpenShift
+                            The F5 Distributed Cloud Customer Edge is deployed inside the Satellite Location
                             cluster. This allows F5 Distributed Cloud to publish secured endpoints as simple
                             service names. The service will proxy the local service as well as remote services
                             providing cross-cluster service availablity. Lisa will publisher her app in the
@@ -167,7 +167,7 @@
                     </div>
                     <div id="demo2-running" style="display: none;">
                         <p>
-                            Let's attempt a client connection within the Satellite OpenShift Location
+                            Let's attempt a client connection within the Satellite Location
                             <span class="fw-bolder fst-italic font-monospaces">{{ location }}</span> cluster to:
                         </p>
                         <p class="text-center fw-bolder fst-italic font-monospace ml-5">http://securedweb.default</p>
