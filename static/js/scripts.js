@@ -254,7 +254,7 @@ $("#start-demo4").on("click", () => {
 $('#run-demo4').on("click", () => {
     const protocol = 'https';
     const fqdn = 'gsapp.f5xc.edgesite.app';
-    service_name = 'demoservice';
+    service_name = '';
     $("#demo4-error").html('').hide();
     $("#demo4-ouput").html('').hide();
     $("#demo4-diagram").attr("src",demo4FailedImage);
