@@ -176,7 +176,7 @@ $('#run-demo2').on("click", () => {
                 $("#demo2-error").html("").hide();
                 $("#demo2-diagram").attr("src",demo1SuccessImage);
                 response.json().then ( val => {
-                    const output = $("#demo2-output").html() + "<br/>Status: <div style='height: 230px; width: 640px;'>" + val.message + "</div>";
+                    const output = $("#demo2-output").html() + "<br/>Status: <div style='height: 230px; width: 640px; overflow-x: scroll; overflow-y: scroll;'>" + val.message + "</div>";
                     $("#demo2-output").html(output).show();
                 });
             }
@@ -229,7 +229,7 @@ $('#run-demo3').on("click", () => {
                 $("#demo3-error").html("").hide();
                 $("#demo3-diagram").attr("src",demo1SuccessImage);
                 response.json().then ( val => {
-                    const output = $("#demo3-output").html() + "<br/>Status: <div style='height: 230px; width: 640px;'>" + val.message + "</div>";
+                    const output = $("#demo3-output").html() + "<br/>Status: <div style='height: 230px; width: 640px; overflow-x: scroll; overflow-y: scroll;'>" + val.message + "</div>";
                     $("#demo3-output").html(output).show();
                 });
             }
@@ -281,7 +281,7 @@ $('#run-demo4').on("click", () => {
                 $("#demo4-error").html("").hide();
                 $("#demo4-diagram").attr("src",demo1SuccessImage);
                 response.json().then ( val => {
-                    const output = $("#demo1-output").html() + "<br/>Status: <div style='height: 230px; width: 640px;'>" + val.message + "</div>";
+                    const output = $("#demo1-output").html() + "<br/>Status: <div style='height: 230px; width: 640px; overflow-x: scroll; overflow-y: scroll;'>" + val.message + "</div>";
                     $("#demo4-output").html(output).show();
                     window.open(protocol + '://' + fqdn + '/' + service_name, '_blank');
                 });
